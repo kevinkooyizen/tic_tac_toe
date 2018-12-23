@@ -47580,7 +47580,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       fetch(page_url).then(function (res) {
         return res.json();
       }).then(function (res) {
-        console.log(res.data);
         _this.board = res.data;
         $('#top-left')[0].innerHTML = _this.board.top_left;
         $('#top')[0].innerHTML = _this.board.top;
@@ -47608,8 +47607,22 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       }).then(function (res) {
         return res.json();
       }).then(function (res) {
-        console.log(res.data);
         _this2.fetchBoard();
+        _this2.checkWinner();
+      }).catch(function (err) {
+        return console.log(err);
+      });
+    },
+    checkWinner: function checkWinner() {
+      var _this3 = this;
+
+      fetch('api/boards/' + this.board.id).then(function (res) {
+        return res.json();
+      }).then(function (res) {
+        if (res.data.winner) {
+          alert(res.data.winner + " Wins!");
+          _this3.fetchBoard();
+        }
       }).catch(function (err) {
         return console.log(err);
       });

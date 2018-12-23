@@ -52,7 +52,6 @@
         fetch(page_url)
           .then(res => res.json())
           .then(res => {
-            console.log(res.data);
             this.board = res.data;
             $('#top-left')[0].innerHTML = this.board.top_left;
             $('#top')[0].innerHTML = this.board.top;
@@ -77,8 +76,19 @@
           })
           .then(res => res.json())
           .then(res => {
-            console.log(res.data);
             this.fetchBoard();
+            this.checkWinner();
+          })
+          .catch(err => console.log(err));
+      },
+      checkWinner() {
+        fetch('api/boards/' + this.board.id)
+          .then(res => res.json())
+          .then(res => {
+            if (res.data.winner) {
+              alert(res.data.winner + " Wins!");
+              this.fetchBoard();
+            }
           })
           .catch(err => console.log(err));
       }

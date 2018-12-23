@@ -27,6 +27,8 @@ class Board extends Resource
             'bottom_left' => $this->bottom_left,
             'bottom' => $this->bottom,
             'bottom_right' => $this->bottom_right,
+            'winner' => $this->winner,
+            'bot' => $this->bot,
         ];
     }
 

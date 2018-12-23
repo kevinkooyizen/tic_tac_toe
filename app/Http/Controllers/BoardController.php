@@ -51,7 +51,7 @@ class BoardController extends Controller {
    */
   public function show($id)
   {
-    $board = Board::findOrFail($id);
+    $board = Board::checkWinner($id);
 
     // Return single article as a resource
     return new BoardResource($board);
