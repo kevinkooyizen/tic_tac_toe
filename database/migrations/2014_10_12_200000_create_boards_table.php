@@ -16,7 +16,9 @@ class CreateBoardsTable extends Migration
         Schema::create('boards', function (Blueprint $table) {
             $table->increments('id');
             $table->string('winner')->nullable();
-            $table->boolean('bot')->default(0);
+            $table->boolean('bot_game')->default(0);
+            $table->boolean('bot_turn')->default(0);
+            $table->string('bot_character')->nullable();
             $table->string('top_left')->nullable();
             $table->string('top')->nullable();
             $table->string('top_right')->nullable();

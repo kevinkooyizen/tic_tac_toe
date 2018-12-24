@@ -47547,6 +47547,29 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -47561,9 +47584,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         right: '',
         bottom_left: '',
         bottom: '',
-        bottom_right: ''
+        bottom_right: '',
+        bot_game: '',
+        bot_turn: ''
       },
-      edit: false
+      toggle: true,
+      winner: false
     };
   },
   created: function created() {
@@ -47575,7 +47601,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     fetchBoard: function fetchBoard(page_url) {
       var _this = this;
 
-      var vm = this;
       page_url = page_url || '/api/boards';
       fetch(page_url).then(function (res) {
         return res.json();
@@ -47590,6 +47615,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         $('#bottom-left')[0].innerHTML = _this.board.bottom_left;
         $('#bottom')[0].innerHTML = _this.board.bottom;
         $('#bottom-right')[0].innerHTML = _this.board.bottom_right;
+        if (!_this.board.bot_game) {
+          $('#bot-game-button').removeClass("d-none");
+          $('#bot-notification').addClass("d-none");
+        } else if (_this.board.bot_game) {
+          $('#bot-game-button').addClass("d-none");
+          $('#bot-notification').removeClass("d-none");
+        }
+        _this.checkWinner();
       }).catch(function (err) {
         return console.log(err);
       });
@@ -47608,7 +47641,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return res.json();
       }).then(function (res) {
         _this2.fetchBoard();
-        _this2.checkWinner();
+        _this2.checkBotTurn();
       }).catch(function (err) {
         return console.log(err);
       });
@@ -47620,9 +47653,83 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return res.json();
       }).then(function (res) {
         if (res.data.winner) {
-          alert(res.data.winner + " Wins!");
-          _this3.fetchBoard();
+          _this3.winner = true;
+          _this3.toggle = true;
+        } else if (res.data.winner == null) {
+          _this3.winner = false;
         }
+      }).catch(function (err) {
+        return console.log(err);
+      });
+    },
+    initiateBotGame: function initiateBotGame() {
+      var _this4 = this;
+
+      this.board.clicked = 'bot_game';
+      fetch('api/boards/' + this.board.id, {
+        method: 'put',
+        body: JSON.stringify(this.board),
+        headers: {
+          'content-type': 'application/json'
+        }
+      }).then(function (res) {
+        return res.json();
+      }).then(function (res) {
+        _this4.fetchBoard();
+      }).catch(function (err) {
+        return console.log(err);
+      });
+    },
+    startBotGame: function startBotGame(starter) {
+      var _this5 = this;
+
+      this.board.clicked = starter;
+      fetch('api/boards/' + this.board.id, {
+        method: 'put',
+        body: JSON.stringify(this.board),
+        headers: {
+          'content-type': 'application/json'
+        }
+      }).then(function (res) {
+        return res.json();
+      }).then(function (res) {
+        _this5.fetchBoard();
+      }).catch(function (err) {
+        return console.log(err);
+      });
+    },
+    checkBotTurn: function checkBotTurn() {
+      var _this6 = this;
+
+      this.board.action = 'check_bot_turn';
+      console.log(this.board);
+      fetch('api/boards/' + this.board.id, {
+        method: 'put',
+        body: JSON.stringify(this.board),
+        headers: {
+          'content-type': 'application/json'
+        }
+      }).then(function (res) {
+        return res.json();
+      }).then(function (res) {
+        _this6.fetchBoard();
+      }).catch(function (err) {
+        return console.log(err);
+      });
+    },
+    startNewGame: function startNewGame() {
+      var _this7 = this;
+
+      fetch('api/boards/', {
+        method: 'post',
+        body: JSON.stringify(this.board),
+        headers: {
+          'content-type': 'application/json'
+        }
+      }).then(function (res) {
+        return res.json();
+      }).then(function (res) {
+        _this7.fetchBoard();
       }).catch(function (err) {
         return console.log(err);
       });
@@ -47706,6 +47813,141 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c("div", [
     _c("h1", [_vm._v("Tic Tac Toe")]),
+    _vm._v(" "),
+    _c("div", [
+      _c(
+        "button",
+        {
+          staticClass: "btn btn-primary",
+          attrs: { type: "button" },
+          on: {
+            click: function($event) {
+              _vm.startNewGame()
+            }
+          }
+        },
+        [_vm._v("Start New Game")]
+      )
+    ]),
+    _vm._v(" "),
+    _c("div", { staticClass: "clearfix" }, [
+      _c(
+        "button",
+        {
+          staticClass: "btn btn-primary float-right mr-5",
+          attrs: { id: "bot-game-button", type: "button" },
+          on: {
+            click: function($event) {
+              _vm.initiateBotGame()
+            }
+          }
+        },
+        [_vm._v("Initiate Bot Game")]
+      ),
+      _vm._v(" "),
+      _c("div", { staticClass: "d-none", attrs: { id: "bot-notification" } }, [
+        _c("div", { staticClass: "float-right mr-5" }, [
+          _vm._m(0),
+          _vm._v(" "),
+          _c("br"),
+          _vm._v(" "),
+          !_vm.board.top_left &&
+          !_vm.board.top &&
+          !_vm.board.top_right &&
+          !_vm.board.left &&
+          !_vm.board.center &&
+          !_vm.board.right &&
+          !_vm.board.bottom_left &&
+          !_vm.board.bottom &&
+          !_vm.board.bottom_right
+            ? _c(
+                "div",
+                {
+                  directives: [
+                    {
+                      name: "show",
+                      rawName: "v-show",
+                      value: _vm.toggle,
+                      expression: "toggle"
+                    }
+                  ]
+                },
+                [
+                  _c("h4", [_vm._v("Do you want to start first?")]),
+                  _vm._v(" "),
+                  _c(
+                    "button",
+                    {
+                      staticClass: "btn btn-success",
+                      attrs: { type: "button" },
+                      on: {
+                        click: function($event) {
+                          _vm.toggle = !_vm.toggle
+                        }
+                      }
+                    },
+                    [_vm._v("Yes")]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "button",
+                    {
+                      staticClass: "btn btn-secondary",
+                      attrs: { type: "button" },
+                      on: {
+                        click: function($event) {
+                          _vm.startBotGame("bot_start")
+                        }
+                      }
+                    },
+                    [_vm._v("No")]
+                  )
+                ]
+              )
+            : _vm._e()
+        ])
+      ])
+    ]),
+    _vm._v(" "),
+    !_vm.board.top_left &&
+    !_vm.board.top &&
+    !_vm.board.top_right &&
+    !_vm.board.left &&
+    !_vm.board.center &&
+    !_vm.board.right &&
+    !_vm.board.bottom_left &&
+    !_vm.board.bottom &&
+    !_vm.board.bottom_right
+      ? _c(
+          "div",
+          {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value: !_vm.toggle,
+                expression: "!toggle"
+              }
+            ]
+          },
+          [_c("h1", [_vm._v("O starts")])]
+        )
+      : _vm._e(),
+    _vm._v(" "),
+    _c(
+      "div",
+      {
+        directives: [
+          {
+            name: "show",
+            rawName: "v-show",
+            value: _vm.winner,
+            expression: "winner"
+          }
+        ]
+      },
+      [_c("h1", [_vm._v("O Wins!")])]
+    ),
     _vm._v(" "),
     _c("table", [
       _c("tr", [
@@ -47829,7 +48071,17 @@ var render = function() {
     ])
   ])
 }
-var staticRenderFns = []
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("h3", [
+      _vm._v("You're playing against a bot  "),
+      _c("i", { staticClass: "fas fa-robot text-primary float-right" })
+    ])
+  }
+]
 render._withStripped = true
 module.exports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {

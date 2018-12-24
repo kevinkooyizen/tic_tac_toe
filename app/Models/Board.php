@@ -4,35 +4,28 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Board extends Model
-{
+class Board extends Model {
+
   protected $hidden = [
     'id',
     'created_at',
     'updated_at',
   ];
 
-  public static function click($request, $id) {
-    $board = Board::findOrFail($id);
-    $countX = 0;
-    $countO = 0;
+  protected $casts = [
+    'bot' => 'bool'
+  ];
 
-    if ($board->{$request->clicked}) return $board;
-    foreach ($board->getAttributes() as $key => $value) {
-      if (!in_array($key, ['id','finished', 'created_at', 'updated_at', 'winner', 'bot'])) {
-        if ($value == "X") {
-          $countX ++;
-        } elseif ($value == "O") {
-          $countO ++;
-        }
-      }
+  public static function click($request, $id) {
+    if ($request->clicked == "bot_game") {
+      $board = self::initiateBotGame($id);
+    } elseif ($request->clicked == "bot_start") {
+      $board = self::startBotGame($request, $id);
+    } elseif ($request->action == "check_bot_turn") {
+      $board = self::clickBox($request, $id);
+    } else {
+      $board = self::clickBox($request, $id);
     }
-    if ($countX > $countO || $countX == $countO) {
-      $board->{$request->clicked} = "O";
-    } elseif ($countO > $countX) {
-      $board->{$request->clicked} = "X";
-    }
-    $board->save();
 
     return $board;
   }
@@ -41,9 +34,6 @@ class Board extends Model
     $board = Board::orderBy('id', "desc")->first();
 
     if (!$board) {
-      $board = new Board;
-      $board->save();
-    } elseif ($board->winner) {
       $board = new Board;
       $board->save();
     }
@@ -72,6 +62,104 @@ class Board extends Model
       $board->winner = $board->center;
     }
     $board->save();
+
+    return $board;
+  }
+
+  public static function initiateBotGame($id) {
+    $board = Board::findOrFail($id);
+    $board->bot_game = true;
+    $board->save();
+
+    return $board;
+  }
+
+  private static function clickBox($request, $id) {
+    $board = Board::findOrFail($id);
+    $countX = 0;
+    $countO = 0;
+
+    if (!$board->bot_turn) {
+      if ($board->{$request->clicked}) return $board;
+      foreach ($board->getAttributes() as $key => $value) {
+        if (!in_array($key, ['id','finished', 'created_at', 'updated_at', 'winner', 'bot_game', 'bot_turn'])) {
+          if ($value == "X") {
+            $countX ++;
+          } elseif ($value == "O") {
+            $countO ++;
+          }
+        }
+      }
+      if ($countX > $countO || $countX == $countO) {
+        $board->{$request->clicked} = "O";
+      } elseif ($countO > $countX) {
+        $board->{$request->clicked} = "X";
+      }
+      if ($board->bot_game) $board->bot_turn = true;
+    } elseif ($board->bot_game && $board->bot_turn) {
+      $board = self::botPlay($board);
+    }
+    $board->save();
+
+    return $board;
+  }
+
+  private static function startBotGame($request, $id) {
+    $board = Board::findOrFail($id);
+    $board->bot_turn = true;
+    $board->save();
+
+    self::botPlay($board);
+
+    return $board;
+  }
+
+  private static function botPlay($board) {
+    // Check if board is empty
+    /*if (!$board->top_left && !$board->top && !$board->top_right && !$board->left && !$board->center && !$board->right && !$board->bottom_left && !$board->bottom && !$board->bottom_right) {
+      $board->top_left = "O";
+      $board->bot_character = "O";
+    }*/
+
+    // Find first character to match
+    $filledBoxes = [];
+    $emptyBoxes = [];
+    foreach ($board->getAttributes() as $key => $value) {
+      if (!in_array($key, ['id','finished', 'created_at', 'updated_at', 'winner', 'bot_game', 'bot_turn', 'bot_character'])) {
+        if ($value == $board->bot_character && $value) {
+          $filledBoxes[] = $key;
+        } elseif (!$value) {
+          $emptyBoxes[] = $key;
+        }
+      }
+    }
+
+    $placedCharacter = false;
+    while ($placedCharacter == false) {
+      if (empty($filledBoxes)) {
+        $board->top_left = "O";
+        $board->bot_character = "O";
+        $placedCharacter = true;
+      } elseif (!empty($filledBoxes)) {
+        // Random
+        $board->{$emptyBoxes[rand(0, sizeof($emptyBoxes)-1)]} = $board->bot_character;
+        $placedCharacter = true;
+      }
+
+    }
+
+    $board->bot_turn = false;
+    $board->save();
+
+    return $board;
+  }
+
+  private static function checkBotTurn($request, $id) {
+    $board = findOrFail($id);
+
+    // if (!$board->bot_turn) return $board;
+
+    // $board = self::botPlay($board);
 
     return $board;
   }

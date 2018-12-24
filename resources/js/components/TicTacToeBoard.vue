@@ -1,6 +1,29 @@
 <template>
   <div>
     <h1>Tic Tac Toe</h1>
+    <div>
+      <button @click="startNewGame()" type="button" class="btn btn-primary">Start New Game</button>
+    </div>
+    <div class="clearfix">
+      <button @click="initiateBotGame()" id="bot-game-button" type="button" class="btn btn-primary float-right mr-5">Initiate Bot Game</button>
+      <div id="bot-notification" class="d-none">
+        <div class="float-right mr-5">
+          <h3>You're playing against a bot&nbsp; <i class="fas fa-robot text-primary float-right"></i></h3>
+          <br>
+          <div v-if="!board.top_left && !board.top && !board.top_right && !board.left && !board.center && !board.right && !board.bottom_left && !board.bottom && !board.bottom_right" v-show='toggle'>
+            <h4>Do you want to start first?</h4>
+            <button @click='toggle = !toggle' type="button" class="btn btn-success">Yes</button>
+            <button @click="startBotGame('bot_start')" type="button" class="btn btn-secondary">No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="!board.top_left && !board.top && !board.top_right && !board.left && !board.center && !board.right && !board.bottom_left && !board.bottom && !board.bottom_right" v-show='!toggle'>
+      <h1>O starts</h1>
+    </div>
+    <div v-show='winner'>
+      <h1>O Wins!</h1>
+    </div>
     <table>
       <tr>
         <td @click="fillBox('top_left')"><h1 id="top-left"></h1></td>
@@ -36,8 +59,11 @@
           bottom_left: '',
           bottom: '',
           bottom_right: '',
-        }, 
-        edit: false
+          bot_game: '',
+          bot_turn: '',
+        },
+        toggle: true,
+        winner: false
       }
     },
 
@@ -47,7 +73,6 @@
 
     methods: {
       fetchBoard(page_url) {
-        let vm = this;
         page_url = page_url || '/api/boards'
         fetch(page_url)
           .then(res => res.json())
@@ -62,6 +87,14 @@
             $('#bottom-left')[0].innerHTML = this.board.bottom_left;
             $('#bottom')[0].innerHTML = this.board.bottom;
             $('#bottom-right')[0].innerHTML = this.board.bottom_right;
+            if (!this.board.bot_game) {
+              $('#bot-game-button').removeClass("d-none");
+              $('#bot-notification').addClass("d-none");
+            } else if (this.board.bot_game) {
+              $('#bot-game-button').addClass("d-none");
+              $('#bot-notification').removeClass("d-none");
+            }
+            this.checkWinner();
           })
           .catch(err => console.log(err));
       },
@@ -77,7 +110,7 @@
           .then(res => res.json())
           .then(res => {
             this.fetchBoard();
-            this.checkWinner();
+            this.checkBotTurn();
           })
           .catch(err => console.log(err));
       },
@@ -86,9 +119,72 @@
           .then(res => res.json())
           .then(res => {
             if (res.data.winner) {
-              alert(res.data.winner + " Wins!");
-              this.fetchBoard();
+              this.winner = true;
+              this.toggle = true;
+            } else if (res.data.winner == null){
+              this.winner = false;
             }
+          })
+          .catch(err => console.log(err));
+      },
+      initiateBotGame() {
+        this.board.clicked = 'bot_game';
+        fetch('api/boards/' + this.board.id, {
+            method: 'put',
+            body: JSON.stringify(this.board),
+            headers: {
+              'content-type': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(res => {
+            this.fetchBoard();
+          })
+          .catch(err => console.log(err));
+      },
+      startBotGame(starter) {
+        this.board.clicked = starter;
+        fetch('api/boards/' + this.board.id, {
+            method: 'put',
+            body: JSON.stringify(this.board),
+            headers: {
+              'content-type': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(res => {
+            this.fetchBoard();
+          })
+          .catch(err => console.log(err));
+      },
+      checkBotTurn() {
+        this.board.action = 'check_bot_turn';
+        console.log(this.board);
+        fetch('api/boards/' + this.board.id, {
+            method: 'put',
+            body: JSON.stringify(this.board),
+            headers: {
+              'content-type': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(res => {
+            this.fetchBoard();
+          })
+          .catch(err => console.log(err));
+      },
+      startNewGame() {
+        fetch('api/boards/', {
+            method: 'post',
+            body: JSON.stringify(this.board),
+            headers: {
+              'content-type': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(res => {
+            this.fetchBoard();
+
           })
           .catch(err => console.log(err));
       }

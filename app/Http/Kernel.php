@@ -38,7 +38,8 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            'throttle:60,1',
+            /*// 23 Dec 2018 [Yi Zen] - Commented for testing
+            'throttle:60,1',*/
             'bindings',
         ],
     ];
