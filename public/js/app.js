@@ -47589,7 +47589,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         bot_turn: ''
       },
       toggle: true,
-      winner: false
+      winner: false,
+      bot_game: false,
+      ongoing_game: false,
+      winning_character: null
     };
   },
   created: function created() {
@@ -47642,6 +47645,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       }).then(function (res) {
         _this2.fetchBoard();
         _this2.checkBotTurn();
+        _this2.ongoing_game = true;
       }).catch(function (err) {
         return console.log(err);
       });
@@ -47654,6 +47658,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       }).then(function (res) {
         if (res.data.winner) {
           _this3.winner = true;
+          _this3.winning_character = res.data.winner;
           _this3.toggle = true;
         } else if (res.data.winner == null) {
           _this3.winner = false;
@@ -47676,6 +47681,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return res.json();
       }).then(function (res) {
         _this4.fetchBoard();
+        _this4.bot_game = true;
       }).catch(function (err) {
         return console.log(err);
       });
@@ -47730,76 +47736,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return res.json();
       }).then(function (res) {
         _this7.fetchBoard();
+        _this7.bot_game = false;
+        _this7.ongoing_game = false;
       }).catch(function (err) {
         return console.log(err);
       });
     }
-    /*makePagination(meta, links) {
-      let pagination = {
-        current_page: meta.current_page,
-        last_page: meta.last_page,
-        next_page_url: links.next,
-        prev_page_url: links.prev,
-      };
-       this.pagination = pagination;
-    },
-    deleteArticle(id) {
-      if (confirm('Are you sure you want to delete this article?')) {
-        fetch(`api/article/${id}`, {
-          method: 'delete'
-        })
-        .then(res => res.json())
-        .then(data => {
-          alert('Article Deleted');
-          this.fetchArticles();
-        })
-        .catch(err => console.log(err));
-      }
-    },
-    addArticle(id) {
-      if (this.edit === false) {
-        // Add 
-        fetch('api/article', {
-          method: 'post',
-          body: JSON.stringify(this.article),
-          headers: {
-            'content-type': 'application/json'
-          }
-        })
-        .then(res => res.json())
-        .then(data => {
-          this.article.title = '';
-          this.article.body = '';
-          alert('Article Created');
-          this.fetchArticles();
-        })
-        .catch(err => console.log(err));
-      } else {
-        fetch('api/article', {
-          method: 'put',
-          body: JSON.stringify(this.article),
-          headers: {
-            'content-type': 'application/json'
-          }
-        })
-        .then(res => res.json())
-        .then(data => {
-          this.article.title = '';
-          this.article.body = '';
-          alert('Article Updated');
-          this.fetchArticles();
-        })
-        .catch(err => console.log(err));
-      }
-    },
-    editArticle(article) {
-      this.edit = true;
-      this.article.id = article.id;
-      this.article.article_id = article.id;
-      this.article.title = article.title;
-      this.article.body = article.body;
-    }*/
-
   }
 });
 
@@ -47834,6 +47776,14 @@ var render = function() {
       _c(
         "button",
         {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: !_vm.bot_game && !_vm.ongoing_game,
+              expression: "!bot_game && !ongoing_game"
+            }
+          ],
           staticClass: "btn btn-primary float-right mr-5",
           attrs: { id: "bot-game-button", type: "button" },
           on: {
@@ -47845,68 +47795,83 @@ var render = function() {
         [_vm._v("Initiate Bot Game")]
       ),
       _vm._v(" "),
-      _c("div", { staticClass: "d-none", attrs: { id: "bot-notification" } }, [
-        _c("div", { staticClass: "float-right mr-5" }, [
-          _vm._m(0),
-          _vm._v(" "),
-          _c("br"),
-          _vm._v(" "),
-          !_vm.board.top_left &&
-          !_vm.board.top &&
-          !_vm.board.top_right &&
-          !_vm.board.left &&
-          !_vm.board.center &&
-          !_vm.board.right &&
-          !_vm.board.bottom_left &&
-          !_vm.board.bottom &&
-          !_vm.board.bottom_right
-            ? _c(
-                "div",
-                {
-                  directives: [
-                    {
-                      name: "show",
-                      rawName: "v-show",
-                      value: _vm.toggle,
-                      expression: "toggle"
-                    }
+      _c(
+        "div",
+        {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: _vm.bot_game,
+              expression: "bot_game"
+            }
+          ],
+          staticClass: "d-none",
+          attrs: { id: "bot-notification" }
+        },
+        [
+          _c("div", { staticClass: "float-right mr-5" }, [
+            _vm._m(0),
+            _vm._v(" "),
+            _c("br"),
+            _vm._v(" "),
+            !_vm.board.top_left &&
+            !_vm.board.top &&
+            !_vm.board.top_right &&
+            !_vm.board.left &&
+            !_vm.board.center &&
+            !_vm.board.right &&
+            !_vm.board.bottom_left &&
+            !_vm.board.bottom &&
+            !_vm.board.bottom_right
+              ? _c(
+                  "div",
+                  {
+                    directives: [
+                      {
+                        name: "show",
+                        rawName: "v-show",
+                        value: !_vm.ongoing_game && _vm.toggle,
+                        expression: "!ongoing_game && toggle"
+                      }
+                    ]
+                  },
+                  [
+                    _c("h4", [_vm._v("Do you want to start first?")]),
+                    _vm._v(" "),
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-success",
+                        attrs: { type: "button" },
+                        on: {
+                          click: function($event) {
+                            _vm.toggle = !_vm.toggle
+                          }
+                        }
+                      },
+                      [_vm._v("Yes")]
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-secondary",
+                        attrs: { type: "button" },
+                        on: {
+                          click: function($event) {
+                            _vm.startBotGame("bot_start")
+                          }
+                        }
+                      },
+                      [_vm._v("No")]
+                    )
                   ]
-                },
-                [
-                  _c("h4", [_vm._v("Do you want to start first?")]),
-                  _vm._v(" "),
-                  _c(
-                    "button",
-                    {
-                      staticClass: "btn btn-success",
-                      attrs: { type: "button" },
-                      on: {
-                        click: function($event) {
-                          _vm.toggle = !_vm.toggle
-                        }
-                      }
-                    },
-                    [_vm._v("Yes")]
-                  ),
-                  _vm._v(" "),
-                  _c(
-                    "button",
-                    {
-                      staticClass: "btn btn-secondary",
-                      attrs: { type: "button" },
-                      on: {
-                        click: function($event) {
-                          _vm.startBotGame("bot_start")
-                        }
-                      }
-                    },
-                    [_vm._v("No")]
-                  )
-                ]
-              )
-            : _vm._e()
-        ])
-      ])
+                )
+              : _vm._e()
+          ])
+        ]
+      )
     ]),
     _vm._v(" "),
     !_vm.board.top_left &&
@@ -47946,7 +47911,7 @@ var render = function() {
           }
         ]
       },
-      [_c("h1", [_vm._v("O Wins!")])]
+      [_c("h1", [_vm._v(_vm._s(_vm.winning_character) + " Wins!")])]
     ),
     _vm._v(" "),
     _c("table", [

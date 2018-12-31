@@ -5,12 +5,12 @@
       <button @click="startNewGame()" type="button" class="btn btn-primary">Start New Game</button>
     </div>
     <div class="clearfix">
-      <button @click="initiateBotGame()" id="bot-game-button" type="button" class="btn btn-primary float-right mr-5">Initiate Bot Game</button>
-      <div id="bot-notification" class="d-none">
+      <button @click="initiateBotGame()" id="bot-game-button" type="button" class="btn btn-primary float-right mr-5" v-show='!bot_game && !ongoing_game'>Initiate Bot Game</button>
+      <div id="bot-notification" class="d-none" v-show='bot_game'>
         <div class="float-right mr-5">
           <h3>You're playing against a bot&nbsp; <i class="fas fa-robot text-primary float-right"></i></h3>
           <br>
-          <div v-if="!board.top_left && !board.top && !board.top_right && !board.left && !board.center && !board.right && !board.bottom_left && !board.bottom && !board.bottom_right" v-show='toggle'>
+          <div v-if="!board.top_left && !board.top && !board.top_right && !board.left && !board.center && !board.right && !board.bottom_left && !board.bottom && !board.bottom_right" v-show='!ongoing_game && toggle'>
             <h4>Do you want to start first?</h4>
             <button @click='toggle = !toggle' type="button" class="btn btn-success">Yes</button>
             <button @click="startBotGame('bot_start')" type="button" class="btn btn-secondary">No</button>
@@ -22,7 +22,7 @@
       <h1>O starts</h1>
     </div>
     <div v-show='winner'>
-      <h1>O Wins!</h1>
+      <h1>{{ winning_character }} Wins!</h1>
     </div>
     <table>
       <tr>
@@ -63,7 +63,10 @@
           bot_turn: '',
         },
         toggle: true,
-        winner: false
+        winner: false,
+        bot_game: false,
+        ongoing_game: false,
+        winning_character: null
       }
     },
 
@@ -111,6 +114,7 @@
           .then(res => {
             this.fetchBoard();
             this.checkBotTurn();
+            this.ongoing_game = true;
           })
           .catch(err => console.log(err));
       },
@@ -120,6 +124,7 @@
           .then(res => {
             if (res.data.winner) {
               this.winner = true;
+              this.winning_character = res.data.winner;
               this.toggle = true;
             } else if (res.data.winner == null){
               this.winner = false;
@@ -139,6 +144,7 @@
           .then(res => res.json())
           .then(res => {
             this.fetchBoard();
+            this.bot_game = true;
           })
           .catch(err => console.log(err));
       },
@@ -184,76 +190,11 @@
           .then(res => res.json())
           .then(res => {
             this.fetchBoard();
-
+            this.bot_game = false;
+            this.ongoing_game = false;
           })
           .catch(err => console.log(err));
       }
-      /*makePagination(meta, links) {
-        let pagination = {
-          current_page: meta.current_page,
-          last_page: meta.last_page,
-          next_page_url: links.next,
-          prev_page_url: links.prev,
-        };
-
-        this.pagination = pagination;
-      },
-      deleteArticle(id) {
-        if (confirm('Are you sure you want to delete this article?')) {
-          fetch(`api/article/${id}`, {
-            method: 'delete'
-          })
-          .then(res => res.json())
-          .then(data => {
-            alert('Article Deleted');
-            this.fetchArticles();
-          })
-          .catch(err => console.log(err));
-        }
-      },
-      addArticle(id) {
-        if (this.edit === false) {
-          // Add 
-          fetch('api/article', {
-            method: 'post',
-            body: JSON.stringify(this.article),
-            headers: {
-              'content-type': 'application/json'
-            }
-          })
-          .then(res => res.json())
-          .then(data => {
-            this.article.title = '';
-            this.article.body = '';
-            alert('Article Created');
-            this.fetchArticles();
-          })
-          .catch(err => console.log(err));
-        } else {
-          fetch('api/article', {
-            method: 'put',
-            body: JSON.stringify(this.article),
-            headers: {
-              'content-type': 'application/json'
-            }
-          })
-          .then(res => res.json())
-          .then(data => {
-            this.article.title = '';
-            this.article.body = '';
-            alert('Article Updated');
-            this.fetchArticles();
-          })
-          .catch(err => console.log(err));
-        }
-      },
-      editArticle(article) {
-        this.edit = true;
-        this.article.id = article.id;
-        this.article.article_id = article.id;
-        this.article.title = article.title;
-        this.article.body = article.body;
-      }*/
     }
   }
 </script>
