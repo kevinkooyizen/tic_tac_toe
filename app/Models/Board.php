@@ -154,25 +154,163 @@ class Board extends Model {
       // $board->{$emptyBoxes[rand(0, sizeof($emptyBoxes)-1)]} = $board->bot_character;
 
       $placedCharacter = false;
-      // Check if opponent is winning soon by checking center
-      if ($board->center == $humanCharacter) {
-        if ($board->top == $humanCharacter && $board->bottom != $board->bot_character) {
-          $board->bottom = $board->bot_character;
+
+      // Check if can win by placing in center
+      if ($board->top_left == $board->bot_character && $board->bottom_right == $board->bot_character && !$board->center) {
+        $board->center = $board->bot_character;
+        $placedCharacter = true;
+      }
+
+      if ($board->top_right == $board->bot_character && $board->bottom_left == $board->bot_character && !$board->center) {
+        $board->center = $board->bot_character;
+        $placedCharacter = true;
+      }
+
+      // Check if opponent can win through sides by placing at corners
+      if (!$placedCharacter) {
+        if ($board->top == $humanCharacter && $board->top_left == $humanCharacter && !$board->top_right) {
+          $board->top_right = $board->bot_character;
           $placedCharacter = true;
         }
-        if ($board->left == $humanCharacter && $board->right != $board->bot_character) {
-          $board->right = $board->bot_character;
+        if ($board->top == $humanCharacter && $board->top_right == $humanCharacter && !$board->top_left) {
+          $board->top_left = $board->bot_character;
           $placedCharacter = true;
         }
-        if ($board->right == $humanCharacter && $board->left != $board->bot_character) {
-          $board->left = $board->bot_character;
+        if ($board->left == $humanCharacter && $board->top_left == $humanCharacter && !$board->bottom_left) {
+          $board->bottom_left = $board->bot_character;
           $placedCharacter = true;
         }
-        if ($board->bottom == $humanCharacter && $board->top != $board->bot_character) {
-          $board->top = $board->bot_character;
+        if ($board->left == $humanCharacter && $board->bottom_left == $humanCharacter && !$board->top_left) {
+          $board->top_left = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->bottom == $humanCharacter && $board->bottom_left == $humanCharacter && !$board->bottom_right) {
+          $board->bottom_right = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->bottom == $humanCharacter && $board->bottom_right == $humanCharacter && !$board->bottom_left) {
+          $board->bottom_left = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->right == $humanCharacter && $board->bottom_right == $humanCharacter && !$board->top_right) {
+          $board->top_right = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->right == $humanCharacter && $board->top_right == $humanCharacter && !$board->bottom_right) {
+          $board->bottom_right = $board->bot_character;
           $placedCharacter = true;
         }
       }
+
+      // Check if opponent can win diagonally by placing at corners
+      if (!$placedCharacter) {
+        if ($board->center == $humanCharacter && $board->top_left == $humanCharacter && !$board->bottom_right) {
+          $board->bottom_right = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->center == $humanCharacter && $board->top_right == $humanCharacter && !$board->bottom_left) {
+          $board->bottom_left = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->center == $humanCharacter && $board->bottom_right == $humanCharacter && !$board->top_left) {
+          $board->top_left = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->center == $humanCharacter && $board->bottom_left == $humanCharacter && !$board->top_right) {
+          $board->top_right = $board->bot_character;
+          $placedCharacter = true;
+        }
+      }
+
+      // Check in can win by placing at sides
+      if (!$placedCharacter) {
+        if ($board->top_left == $board->bot_character && $board->bottom_left == $board->bot_character && !$board->left) {
+          $board->left = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->top_left == $board->bot_character && $board->top_right == $board->bot_character && !$board->top) {
+          $board->top = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->top_right == $board->bot_character && $board->bottom_right == $board->bot_character && !$board->right) {
+          $board->right = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->bottom_left == $board->bot_character && $board->bottom_right == $board->bot_character && !$board->bottom) {
+          $board->bottom = $board->bot_character;
+          $placedCharacter = true;
+        }
+      }
+
+      // Check if opponent can win by sides
+      if (!$placedCharacter) {
+        if ($board->top_left == $humanCharacter && $board->bottom_left == $humanCharacter && !$board->left) {
+          $board->left = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if (!$placedCharacter) {
+          if ($board->top_left == $humanCharacter && $board->top_right == $humanCharacter && !$board->top) {
+            $board->top = $board->bot_character;
+            $placedCharacter = true;
+          }
+        }
+        if (!$placedCharacter) {
+          if ($board->top_right == $humanCharacter && $board->bottom_right == $humanCharacter && !$board->right) {
+            $board->right = $board->bot_character;
+            $placedCharacter = true;
+          }
+        }
+        if (!$placedCharacter) {
+          if ($board->bottom_left == $humanCharacter && $board->bottom_right == $humanCharacter && !$board->bottom) {
+            $board->bottom = $board->bot_character;
+            $placedCharacter = true;
+          }
+        }
+      }
+
+      // Check if opponent can win by placing at center
+      if (!$placedCharacter) {
+        if ($board->top_left == $humanCharacter && $board->bottom_right == $humanCharacter && !$board->center) {
+          $board->center = $board->bot_character;
+          $placedCharacter = true;
+        }
+
+        if ($board->top_right == $humanCharacter && $board->bottom_left == $humanCharacter && !$board->center) {
+          $board->center = $board->bot_character;
+          $placedCharacter = true;
+        }
+      }
+
+      // Check if opponent can win by placing at sides
+      if (!$placedCharacter) {
+        if ($board->center == $humanCharacter) {
+          if ($board->top == $humanCharacter && !$board->bottom) {
+            $board->bottom = $board->bot_character;
+            $placedCharacter = true;
+          }
+          if ($board->left == $humanCharacter && !$board->right) {
+            $board->right = $board->bot_character;
+            $placedCharacter = true;
+          }
+          if ($board->right == $humanCharacter && !$board->left) {
+            $board->left = $board->bot_character;
+            $placedCharacter = true;
+          }
+          if ($board->bottom == $humanCharacter && !$board->top) {
+            $board->top = $board->bot_character;
+            $placedCharacter = true;
+          }
+        }
+      }
+
+      // Check starting if need to block in center
+      if (!$placedCharacter) {
+        if (sizeof($filledBoxes) == 1 && ($board->top_left || $board->top_right || $board->bottom_left || $board->bottom_right)) {
+          $board->center = $board->bot_character;
+          $placedCharacter = true;
+        }
+      }
+
       // Check for filled/empty corners
       $botCharactersInCorner = 0;
       foreach ($corners as $corner) {
@@ -243,7 +381,7 @@ class Board extends Model {
       }
 
       if (!$placedCharacter) {
-        $board->{$emptyBoxes[rand(0, sizeof($emptyBoxes)-1)]} = $board->bot_character;
+        // $board->{$emptyBoxes[rand(0, sizeof($emptyBoxes)-1)]} = $board->bot_character;
       }
     }
 
