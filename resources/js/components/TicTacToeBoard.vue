@@ -165,7 +165,6 @@
       },
       checkBotTurn() {
         this.board.action = 'check_bot_turn';
-        console.log(this.board);
         fetch('api/boards/' + this.board.id, {
             method: 'put',
             body: JSON.stringify(this.board),

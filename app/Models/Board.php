@@ -139,18 +139,112 @@ class Board extends Model {
         }
       }
     }
+    if ($board->bot_character == "O") {
+      $humanCharacter = "X";
+    } elseif ($board->bot_character == "X") {
+      $humanCharacter = "O";
+    }
+    $corners = ['top_left', 'top_right', 'bottom_left', 'bottom_right'];
+    $middle = 'center';
+    $sides = ['top', 'left', 'right', 'bottom'];
+    if (empty($filledBoxes)) {
+      $board->{$corners[rand(0, sizeof($corners)-1)]} = $board->bot_character;
+    } elseif (!empty($filledBoxes)) {
+      // Random - Easy Bot
+      // $board->{$emptyBoxes[rand(0, sizeof($emptyBoxes)-1)]} = $board->bot_character;
 
-    $placedCharacter = false;
-    while (!$placedCharacter) {
-      if (empty($filledBoxes)) {
-        $board->top_left = $board->bot_character;
-        $placedCharacter = true;
-      } elseif (!empty($filledBoxes)) {
-        // Random
-        $board->{$emptyBoxes[rand(0, sizeof($emptyBoxes)-1)]} = $board->bot_character;
-        $placedCharacter = true;
+      $placedCharacter = false;
+      // Check if opponent is winning soon by checking center
+      if ($board->center == $humanCharacter) {
+        if ($board->top == $humanCharacter && $board->bottom != $board->bot_character) {
+          $board->bottom = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->left == $humanCharacter && $board->right != $board->bot_character) {
+          $board->right = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->right == $humanCharacter && $board->left != $board->bot_character) {
+          $board->left = $board->bot_character;
+          $placedCharacter = true;
+        }
+        if ($board->bottom == $humanCharacter && $board->top != $board->bot_character) {
+          $board->top = $board->bot_character;
+          $placedCharacter = true;
+        }
+      }
+      // Check for filled/empty corners
+      $botCharactersInCorner = 0;
+      foreach ($corners as $corner) {
+        // Check for filled bot character corners
+        if (in_array($corner, $filledBoxes) && $board->{$corner} == $board->bot_character) {
+          $botCharactersInCorner++;
+        }
+      }
+      if ($botCharactersInCorner < 3 && !$placedCharacter) {
+        foreach ($corners as $corner) {
+          // Check for filled bot character corners
+          if ($placedCharacter) continue;
+          if (!in_array($corner, $filledBoxes)) {
+            // Check if blocked
+            if (in_array($corner, ['top_left', 'top_right']) && $board->top == $humanCharacter) continue;
+            if (in_array($corner, ['top_left', 'bottom_left']) && $board->left == $humanCharacter) continue;
+            if (in_array($corner, ['bottom_left', 'bottom_right']) && $board->bottom == $humanCharacter) continue;
+            if (in_array($corner, ['top_right', 'bottom_right']) && $board->right == $humanCharacter) continue;
+            $board->{$corner} = $board->bot_character;
+            $placedCharacter = true;
+          }
+        }
+      }
+      // Attempt to win
+      $filledBotCorners = [];
+      if (!$placedCharacter) {
+        // Check winning slots
+        foreach ($filledBoxes as $filledBox) {
+          if ($board->{$filledBox} == $board->bot_character) {
+            $filledBotCorners[] = $filledBox;
+          }
+        }
+
+        $uncheckedBotCorners = [];
+        if (in_array('top_left', $filledBotCorners) && in_array('bottom_left', $filledBotCorners)) {
+          $uncheckedBotCorners[] = ['top_left', 'bottom_left'];
+        }
+        if (in_array('top_left', $filledBotCorners) && in_array('top_right', $filledBotCorners)) {
+          $uncheckedBotCorners[] = ['top_left', 'top_right'];
+        }
+        if (in_array('top_right', $filledBotCorners) && in_array('bottom_right', $filledBotCorners)) {
+          $uncheckedBotCorners[] = ['top_right', 'bottom_right'];
+        }
+        if (in_array('bottom_left', $filledBotCorners) && in_array('bottom_right', $filledBotCorners)) {
+          $uncheckedBotCorners[] = ['bottom_left', 'bottom_right'];
+        }
+
+        foreach ($uncheckedBotCorners as $key => $uncheckedBotCorner) {
+          if ($placedCharacter) continue;
+          if (in_array('top_left', $uncheckedBotCorner) && in_array('bottom_left', $uncheckedBotCorner) && $board->left != $humanCharacter) {
+            $board->left = $board->bot_character;
+            $placedCharacter = true;
+          }
+          if (in_array('top_left', $uncheckedBotCorner) && in_array('top_right', $uncheckedBotCorner) && $board->top != $humanCharacter) {
+            $board->top = $board->bot_character;
+            $placedCharacter = true;
+          }
+          if (in_array('top_right', $uncheckedBotCorner) && in_array('bottom_right', $uncheckedBotCorner) && $board->right != $humanCharacter) {
+            $board->right = $board->bot_character;
+            $placedCharacter = true;
+          }
+          if (in_array('bottom_left', $uncheckedBotCorner) && in_array('bottom_right', $uncheckedBotCorner) && $board->bottom != $humanCharacter) {
+            $board->bottom = $board->bot_character;
+            $placedCharacter = true;
+          }
+        }
+
       }
 
+      if (!$placedCharacter) {
+        $board->{$emptyBoxes[rand(0, sizeof($emptyBoxes)-1)]} = $board->bot_character;
+      }
     }
 
     $board->bot_turn = false;

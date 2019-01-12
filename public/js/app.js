@@ -47708,7 +47708,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       var _this6 = this;
 
       this.board.action = 'check_bot_turn';
-      console.log(this.board);
       fetch('api/boards/' + this.board.id, {
         method: 'put',
         body: JSON.stringify(this.board),

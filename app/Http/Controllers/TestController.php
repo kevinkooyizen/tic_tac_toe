@@ -7,23 +7,13 @@ use App\Http\Requests;
 use App\Models\Board;
 
 class TestController extends Controller {
-  public function index() {
+  public function index(Request $request) {
     $board = Board::getLatestUnfinishedBoard();
+    $request->action = 'check_bot_turn';
+    $board = Board::click($request, $board->id);
 
-    $filledBoxes = [];
-    $emptyBoxes = [];
-    foreach ($board->getAttributes() as $key => $value) {
-      if (!in_array($key, ['id','finished', 'created_at', 'updated_at', 'winner', 'bot_game', 'bot_turn', 'bot_character'])) {
-        if ($value == $board->bot_character && $value) {
-          $filledBoxes[] = $key;
-        } elseif (!$value) {
-          $emptyBoxes[] = $key;
-        }
-      }
-    }
-
-    dd($emptyBoxes);
-    dd(rand(0, sizeof($emptyBoxes)-1));
+    // Return single article as a resource
+    dd ($board->getAttributes());
   }
 
 }
